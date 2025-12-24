@@ -1,0 +1,2 @@
+models/efficientnet_classifier/*.pt filter=lfs diff=lfs merge=lfs -text
+models/yolov8_detection/**/*.pt filter=lfs diff=lfs merge=lfs -text

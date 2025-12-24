@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionAI - Detection Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px border rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                    <span class="bg-indigo-600 p-2 rounded-lg text-white">
+                        <i data-lucide="zap"></i>
+                    </span>
+                    VisionAI <span class="text-indigo-400">Detector</span>
+                </h1>
+                <p class="text-slate-400 mt-1">Enterprise Animal-Human Detection System</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-full flex items-center gap-2 text-sm">
+                    <i data-lucide="activity" class="text-emerald-400 animate-pulse w-4 h-4"></i>
+                    <span>API Connection: Active</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Controls & Stats (4 cols) -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Upload Zone -->
+                <div id="dropzone" class="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-700 hover:border-indigo-500 hover:bg-slate-900/50 transition-all duration-300 p-8 text-center cursor-pointer">
+                    <input type="file" id="file-input" class="hidden" accept="video/*">
+                    
+                    <!-- Idle State -->
+                    <div id="idle-ui" class="space-y-4">
+                        <div class="mx-auto w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center text-indigo-400">
+                            <i data-lucide="upload" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg">Upload Source</h3>
+                            <p class="text-sm text-slate-500 mt-1 uppercase tracking-tighter font-bold">MP4, AVI, MOV (MAX 1GB)</p>
+                        </div>
+                    </div>
+
+                    <!-- Active State (Progress) -->
+                    <div id="progress-container" class="hidden space-y-4">
+                        <div class="flex justify-between text-xs mb-1 font-mono">
+                            <span id="status-text" class="text-indigo-400 uppercase tracking-widest">uploading...</span>
+                            <span id="progress-text">0%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detection Stats (Updated Live from Backend) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Humans</p>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="user" class="w-4 h-4 text-indigo-400"></i>
+                            <span id="stat-humans" class="text-xl font-bold">0</span>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Animals</p>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="paw-print" class="w-4 h-4 text-amber-400"></i>
+                            <span id="stat-animals" class="text-xl font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Logs -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col h-[300px]">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500">System Logs</h3>
+                        <i data-lucide="terminal" class="w-3 h-3 text-slate-600"></i>
+                    </div>
+                    <div id="log-container" class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-[10px]">
+                        <p id="initial-log" class="text-slate-600 italic">Listening for file input...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Video Preview & Results (8 cols) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <div id="result-view" class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden min-h-[500px] flex flex-col relative">
+                    
+                    <!-- Empty/Idle State -->
+                    <div id="display-idle" class="flex-1 flex flex-col items-center justify-center text-slate-600 p-12 text-center">
+                        <i data-lucide="monitor" class="mb-4 opacity-20 w-16 h-16"></i>
+                        <p class="max-w-xs text-sm">Waiting for video stream analysis to complete. Results will be displayed here in high-definition.</p>
+                    </div>
+
+                    <!-- Processing/Polling State -->
+                    <div id="display-processing" class="hidden flex-1 flex flex-col items-center justify-center p-12 space-y-6">
+                        <div class="w-20 h-20 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin"></div>
+                        <div class="text-center">
+                            <h3 class="text-lg font-bold">Neural Engine Active</h3>
+                            <p class="text-slate-500 text-xs mt-1">Polling backend for frame recognition results...</p>
+                        </div>
+                    </div>
+
+                    <!-- Completed State -->
+                    <div id="result-container" class="hidden animate-in flex-1 flex flex-col">
+                        <div class="relative bg-black flex-1 flex items-center justify-center">
+                            <video id="video-preview" class="max-h-[500px] w-full bg-black"
+                             controls preload="metadata" playsinline></video>
+
+                            <div class="absolute top-4 left-4">
+                                <span class="bg-emerald-500 text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl">
+                                    <i data-lucide="check-circle" class="w-3 h-3"></i> AI Processed
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 border-t border-slate-800 bg-slate-900/50">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h2 class="text-lg font-bold">Analysis Ready</h2>
+                                    <p class="text-xs text-slate-500">Video successfully annotated by detection engine.</p>
+                                </div>
+                                <div class="flex gap-3 w-full sm:w-auto">
+                                    <button id="process-another" class="flex-1 sm:flex-none px-5 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 transition-colors text-xs font-bold uppercase tracking-wider">
+                                        Reset
+                                    </button>
+                                    <a id="download-btn" href="#" class="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition-colors text-xs font-bold uppercase tracking-wider text-center">
+                                        Download Video
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Footer -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center gap-3">
+                        <i data-lucide="zap" class="w-4 h-4 text-yellow-500"></i>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase">Low Latency</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase">Encrypted API</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center gap-3">
+                        <i data-lucide="cpu" class="w-4 h-4 text-indigo-500"></i>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase">YOLOv8 Engine</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Error Toast -->
+        <div id="error-message" class="fixed bottom-8 right-8 hidden animate-in slide-in-from-bottom-4">
+            <div class="bg-red-500/90 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-red-400/20">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                <span id="error-text" class="text-sm font-bold"></span>
+                <button onclick="document.getElementById('error-message').classList.add('hidden')" class="ml-4 opacity-50 hover:opacity-100">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const idleUI = document.getElementById('idle-ui');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const statusText = document.getElementById('status-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        const displayIdle = document.getElementById('display-idle');
+        const displayProcessing = document.getElementById('display-processing');
+        const resultContainer = document.getElementById('result-container');
+        
+        const downloadBtn = document.getElementById('download-btn');
+        const videoPreview = document.getElementById('video-preview');
+        const processAnotherBtn = document.getElementById('process-another');
+        const logContainer = document.getElementById('log-container');
+        const statHumans = document.getElementById('stat-humans');
+        const statAnimals = document.getElementById('stat-animals');
+
+        let currentTaskId = null;
+
+        // Initialize Lucide
+        lucide.createIcons();
+
+        // Helper: Add Log
+        function addLog(msg, type = 'info') {
+            const initialLog = document.getElementById('initial-log');
+            if (initialLog) initialLog.remove();
+
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const entry = document.createElement('div');
+            entry.className = 'flex gap-2 animate-in';
+            let color = 'text-slate-400';
+            if (type === 'success') color = 'text-emerald-400';
+            if (type === 'error') color = 'text-red-400';
+            if (type === 'warn') color = 'text-amber-400';
+
+            entry.innerHTML = `<span class="text-slate-600">[${time}]</span> <span class="${color}">${msg}</span>`;
+            logContainer.prepend(entry);
+        }
+
+        // --- Drag and Drop Logic ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+            dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false);
+        });
+
+        dropzone.addEventListener('dragover', () => dropzone.classList.add('border-indigo-500', 'bg-slate-900/50'));
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-indigo-500', 'bg-slate-900/50'));
+        
+        dropzone.addEventListener('drop', e => {
+            dropzone.classList.remove('border-indigo-500', 'bg-slate-900/50');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        dropzone.addEventListener('click', () => {
+            if (progressContainer.classList.contains('hidden')) fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            if (!file.type.startsWith('video/')) {
+                showError('Invalid file format. Please provide a video.');
+                return;
+            }
+            uploadFile(file);
+        }
+
+        // --- API Integration (Updated for Backend JSON keys) ---
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                // UI Reset
+                idleUI.classList.add('hidden');
+                progressContainer.classList.remove('hidden');
+                displayIdle.classList.add('hidden');
+                displayProcessing.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                resultContainer.classList.add('hidden');
+                statHumans.textContent = '0';
+                statAnimals.textContent = '0';
+
+                showProgress('Initializing Upload...', 0);
+                addLog(`Uploading file: ${file.name}`);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Upload failed');
+                }
+                
+                const data = await response.json();
+                currentTaskId = data.task_id;
+                addLog(`Upload accepted. Task ID: ${currentTaskId}`, 'success');
+                showProgress('Processing Video...', 10);
+                
+                pollStatus();
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        
+        async function pollStatus() {
+    if (!currentTaskId) return;
+
+    try {
+        const response = await fetch(`/status/${currentTaskId}`);
+        const data = await response.json();
+
+        if (data.status === 'completed') {
+            addLog('Analysis engine complete. Rendering output.', 'success');
+            showResult(data.download_url);
+            return; // ⛔ STOP POLLING
+        }
+
+        if (data.status === 'processing') {
+            const progress = data.progress || 0;
+            const progressPercent = Math.min(10 + Math.floor(progress * 0.9), 99);
+            showProgress('Detection engine active...', progressPercent);
+            setTimeout(pollStatus, 2000);
+            return;
+        }
+
+        if (data.status === 'error') {
+            throw new Error(data.error || 'Processing failed');
+        }
+
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+        function showProgress(message, percent) {
+            statusText.textContent = message;
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            progressContainer.classList.add('hidden');
+            idleUI.classList.remove('hidden');
+            displayProcessing.classList.add('hidden');
+            displayIdle.classList.remove('hidden');
+            addLog(`System Error: ${message}`, 'error');
+        }
+
+        function showResult(videoUrl) {
+    showProgress('Finalizing output...', 100);
+
+    setTimeout(() => {
+        progressContainer.classList.add('hidden');
+        displayProcessing.classList.add('hidden');
+        resultContainer.classList.remove('hidden');
+
+        videoPreview.pause();
+        videoPreview.removeAttribute('src');
+        videoPreview.load();
+
+        videoPreview.src = videoUrl;
+        videoPreview.load();
+
+        downloadBtn.href = videoUrl;
+
+        addLog('Annotated video ready for playback.', 'success');
+    }, 500);
+}
+
+
+        processAnotherBtn.addEventListener('click', () => {
+            resultContainer.classList.add('hidden');
+            displayIdle.classList.remove('hidden');
+            idleUI.classList.remove('hidden');
+            fileInput.value = '';
+            currentTaskId = null;
+            statHumans.textContent = '0';
+            statAnimals.textContent = '0';
+            addLog('Ready for new batch analysis.');
+        });
+    </script>
+</body>
+</html>
