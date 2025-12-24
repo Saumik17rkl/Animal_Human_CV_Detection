@@ -1,0 +1,77 @@
+_wandb:
+    value:
+        cli_version: 0.23.1
+        e:
+            i72kfmylw6uyzc5jszn7o8s651v75bd4:
+                codePath: d:\project\animal_human_detection\code.ipynb
+                codePathLocal: code.ipynb
+                cpu_count: 6
+                cpu_count_logical: 12
+                disk:
+                    /:
+                        total: "373292003328"
+                        used: "166647009280"
+                email: saumik17rkl@gmail.com
+                executable: c:\Users\HP\anaconda3\python.exe
+                host: DESKTOP-88NG539
+                memory:
+                    total: "16456368128"
+                os: Windows-11-10.0.26200-SP0
+                program: d:\project\animal_human_detection\code.ipynb
+                python: CPython 3.13.5
+                root: d:\project\animal_human_detection
+                startedAt: "2025-12-19T21:17:53.259956Z"
+                writerId: i72kfmylw6uyzc5jszn7o8s651v75bd4
+        m: []
+        python_version: 3.13.5
+        t:
+            "1":
+                - 2
+                - 1
+                - 3
+                - 5
+                - 11
+                - 41
+                - 49
+                - 53
+                - 71
+                - 80
+                - 105
+            "2":
+                - 2
+                - 1
+                - 3
+                - 5
+                - 11
+                - 41
+                - 49
+                - 51
+                - 53
+                - 71
+                - 80
+                - 98
+                - 105
+            "3":
+                - 2
+                - 13
+                - 16
+            "4": 3.13.5
+            "5": 0.23.1
+            "6": 4.57.3
+            "8":
+                - 1
+                - 3
+            "12": 0.23.1
+            "13": windows-amd64
+batch:
+    value: 8
+epochs:
+    value: 30
+imgsz:
+    value: 640
+model:
+    value: yolov8n
+num_classes:
+    value: 16
+optimizer:
+    value: AdamW

@@ -1,0 +1,24 @@
+{
+  "os":  "Windows-11-10.0.26200-SP0",
+  "python":  "CPython 3.13.5",
+  "startedAt":  "2025-12-19T21:17:53.259956Z",
+  "program":  "d:\\project\\animal_human_detection\\code.ipynb",
+  "codePath":  "d:\\project\\animal_human_detection\\code.ipynb",
+  "codePathLocal":  "code.ipynb",
+  "email":  "saumik17rkl@gmail.com",
+  "root":  "d:\\project\\animal_human_detection",
+  "host":  "DESKTOP-88NG539",
+  "executable":  "c:\\Users\\HP\\anaconda3\\python.exe",
+  "cpu_count":  6,
+  "cpu_count_logical":  12,
+  "disk":  {
+    "/":  {
+      "total":  "373292003328",
+      "used":  "166647009280"
+    }
+  },
+  "memory":  {
+    "total":  "16456368128"
+  },
+  "writerId":  "i72kfmylw6uyzc5jszn7o8s651v75bd4"
+}
