@@ -362,24 +362,29 @@
         }
 
         function showResult(videoUrl) {
-    showProgress('Finalizing output...', 100);
+   showProgress('Finalizing output...', 100);
 
-    setTimeout(() => {
-        progressContainer.classList.add('hidden');
-        displayProcessing.classList.add('hidden');
-        resultContainer.classList.remove('hidden');
+   setTimeout(() => {
+       progressContainer.classList.add('hidden');
+       displayProcessing.classList.add('hidden');
+       resultContainer.classList.remove('hidden');
 
-        videoPreview.pause();
-        videoPreview.removeAttribute('src');
-        videoPreview.load();
+       videoPreview.pause();
+       videoPreview.removeAttribute('src');
+       videoPreview.load();
 
-        videoPreview.src = videoUrl;
-        videoPreview.load();
+       // Use the streaming endpoint for better performance
+       const videoName = videoUrl.split('/').pop();
+       const streamUrl = `/stream/${videoName}`;
+       
+       videoPreview.src = streamUrl;
+       videoPreview.load();
+       videoPreview.controls = true;
 
-        downloadBtn.href = videoUrl;
+       downloadBtn.href = videoUrl;
 
-        addLog('Annotated video ready for playback.', 'success');
-    }, 500);
+       addLog('Annotated video ready for playback.', 'success');
+   }, 500);
 }
 
 

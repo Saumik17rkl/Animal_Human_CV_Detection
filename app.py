@@ -268,22 +268,43 @@ def status(task_id):
 
 
 
-@app.route("/processed/<path:filename>")
+@app.route('/processed/<path:filename>')
 def processed_file(filename):
-    file_path = os.path.join(app.config["PROCESSED_FOLDER"], filename)
-
-    if not os.path.isfile(file_path):
+    try:
+        if filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            return send_from_directory(
+                app.config['PROCESSED_FOLDER'],
+                filename
+            )
+        else:
+            return send_from_directory(
+                app.config['PROCESSED_FOLDER'],
+                filename,
+                as_attachment=True,
+                download_name=filename
+            )
+    except FileNotFoundError:
         abort(404)
 
-    return send_file(
-        file_path,
-        mimetype="video/mp4",
-        as_attachment=False,   # 🔴 CRITICAL
-        conditional=True       # 🔴 CRITICAL (range requests)
+@app.route('/stream/<path:filename>')
+def stream_file(filename):
+    video_path = os.path.join(app.config['PROCESSED_FOLDER'], filename)
+    
+    def generate():
+        with open(video_path, 'rb') as video_file:
+            while True:
+                data = video_file.read(1024 * 1024)  # 1MB chunks
+                if not data:
+                    break
+                yield data
+    
+    return Response(
+        generate(),
+        mimetype='video/mp4',
+        headers={
+            'Content-Disposition': f'inline; filename={filename}'
+        }
     )
-
-
-
 if __name__ == '__main__':
     # Initialize models
     print("Initializing models...")
