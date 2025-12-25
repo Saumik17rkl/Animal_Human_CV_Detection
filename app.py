@@ -236,7 +236,7 @@ def process_video_task(video_path, task_id):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('https://animal-human-detection.vercel.app/')
 
 @app.route('/upload', methods=['POST'])
 def upload():
