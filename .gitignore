@@ -79,8 +79,7 @@ uploads/
 datasets/
 
 # Model files
-*.pt
-*.pth
+
 *.h5
 *.hdf5
 *.pkl
