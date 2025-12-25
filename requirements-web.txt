@@ -1,11 +1,11 @@
-flask==2.3.3
-werkzeug==2.3.7
-python-dotenv==1.0.0
-gunicorn==21.2.0
-torch>=2.0.0
-torchvision>=0.15.0
-ultralytics>=8.0.0
-opencv-python>=4.7.0
-numpy>=1.24.0
-python-magic==0.4.27
-python-magic-bin==0.4.14; sys_platform == 'win32'
+flask
+werkzeug
+python-dotenv
+gunicorn
+torch
+torchvision
+ultralytics
+opencv-python
+numpy
+python-magic
+python-magic-bin ; sys_platform == 'win32'
